@@ -1,6 +1,6 @@
 # Homelab Infrastructure
 
-# Architektur (Kurzüberblick)
+# Architektur
 
 - **Firewall:** pfSense
 - **VLANs:**
