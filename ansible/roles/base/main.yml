@@ -1,0 +1,42 @@
+---
+
+- name: Paketquellen aktualisieren
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+
+- name: Systempakete upgraden
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: yes
+  become: yes
+
+- name: Basis-Tools installieren
+  ansible.builtin.apt:
+    name:
+      - vim
+      - htop
+      - curl
+      - wget
+      - net-tools
+      - ca-certificates
+    state: present
+  become: yes
+
+- name: Zeitzone auf Europe/Berlin setzen
+  ansible.builtin.command: timedatectl set-timezone Europe/Berlin
+  become: yes
+  changed_when: false
+
+- name: unattended-upgrades installieren
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+  become: yes
+
+- name: unattended-upgrades aktivieren
+  ansible.builtin.command: dpkg-reconfigure -f noninteractive unattended-upgrades
+  become: yes
+  changed_when: false

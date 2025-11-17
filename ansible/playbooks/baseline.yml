@@ -1,0 +1,7 @@
+---
+- name: Baseline-Konfiguration für alle Homelab-Server
+  hosts: all
+  become: yes
+
+  roles:
+    - base
