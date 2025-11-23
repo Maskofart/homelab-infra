@@ -40,3 +40,25 @@
   ansible.builtin.command: dpkg-reconfigure -f noninteractive unattended-upgrades
   become: yes
   changed_when: false
+
+- name: root-SSH deaktivieren
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart SSH
+  become: yes
+
+- name: Passwort-Authentifizierung deaktivieren
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart SSH
+  become: yes
+
+- name: MOTD deaktivieren (Minimalkonfiguration)
+  ansible.builtin.file:
+    path: /etc/motd
+    state: absent
+  become: yes
