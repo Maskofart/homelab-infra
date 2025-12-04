@@ -65,9 +65,9 @@
 
 ### **Hardware**
 - ESP32
+- ESP32 - cam
 - DHT22-Sensoren
 - Reed-Sensoren
-- Zigbee-Dongle
 
 ### **Datenfluss**
 **MQTT → Node-RED → InfluxDB → Grafana**
