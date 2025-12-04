@@ -1,20 +1,86 @@
-# Homelab Infrastructure
+# Homelab – Architektur & Technologie-Stack
 
-# Architektur
+---
 
-- **Firewall:** pfSense
-- **VLANs:**
-  - VLAN 10 – Server
-  - VLAN 20 – Monitoring
-  - VLAN 30 – IoT
-- **Wichtige Systeme:**
-  - Monitoring-VM (Docker, Grafana, InfluxDB, Node-RED)
-  - IoT-VM (MQTT, Sensorik)
-  - Automation-VM (Ansible, Git)
+## 1. Virtualisierung & Hardware
 
-# Ziel
+### **Proxmox VE**
+- Virtualisierung von KVM- und LXC-Instanzen
+- Zentrale Verwaltung aller VMs
+- Lokaler SSD-Speicher für schnelle IO
 
-- Infrastruktur als Code mit **Ansible**
-- Automatisierte Deployments über **CI/CD**
-- Überwachung mit **Grafana** und **InfluxDB**
-- Saubere Trennung von Netzwerksegmenten (VLANs)
+### **Netzwerkhardware**
+- Managed Switch (Layer 2) mit VLAN-Support
+- pfSense Firewall für Routing, DHCP und Sicherheitsregeln
+
+---
+
+## 2. Netzwerkdesign
+
+### **VLANs**
+- **VLAN 10 – Server**
+- **VLAN 20 – Monitoring**
+- **VLAN 30 – IoT**
+
+### **Firewall-Regeln**
+- Strikte Trennung der Netzwerksegmente
+- Nur definierte Inter-VLAN-Kommunikation
+- DHCP-Konfiguration pro VLAN
+- NAT/Portweiterleitungen für interne Tests
+
+---
+
+## 3. Virtuelle Maschinen & Services
+
+### **Monitoring-VM (Docker-Host)**
+- **Grafana** – Dashboards und Visualisierung  
+- **InfluxDB** – Zeitreihen-Datenbank  
+- **Prometheus** – System- und Service-Metrics  
+- **Node-RED** – Automatisierungs- und Logikflows  
+
+### **IoT-VM**
+- **Mosquitto MQTT-Broker**
+- Verarbeitung und Weiterleitung von Sensordaten (ESP32, DHT22, Reed-Sensoren)
+
+### **Automation-VM**
+- **Ansible** für Infrastructure as Code  
+- **Git** für Versionskontrolle  
+- Playbooks für Systeminstallation, Baseline-Konfiguration und Service-Deployments  
+- CI/CD-Anbindung (GitHub/GitLab)
+
+---
+
+## 4. Automatisierung (Infrastructure as Code)
+
+- Provisionierung neuer Systeme über Ansible
+- Rollen für:
+  - Baseline (Benutzer, Updates, SSH, Hardening)
+  - Docker-Hosts
+  - Monitoring-Dienste
+- Reproduzierbare Deployments durch Versionierung in Git und CI/CD
+
+---
+
+## 5. IoT-Integration
+
+### **Hardware**
+- ESP32
+- DHT22-Sensoren
+- Reed-Sensoren
+- Zigbee-Dongle
+
+### **Datenfluss**
+**MQTT → Node-RED → InfluxDB → Grafana**
+
+Sensorwerte werden in Echtzeit verarbeitet und visualisiert.
+
+---
+
+## 6. Lern- und Projektziele
+- Aufbau einer realitätsnahen IT-Infrastruktur
+- Vertiefung von Kenntnissen in:
+  - Linux- und Windows-Administration
+  - Netzwerkdesign (VLANs, Routing, Firewall)
+  - Monitoring & Observability
+  - Automatisierung (Ansible, Docker, CI/CD)
+  - IoT-Datenverarbeitung
