@@ -73,14 +73,3 @@
 **MQTT → Node-RED → InfluxDB → Grafana**
 
 Sensorwerte werden in Echtzeit verarbeitet und visualisiert.
-
----
-
-## 6. Lern- und Projektziele
-- Aufbau einer realitätsnahen IT-Infrastruktur
-- Vertiefung von Kenntnissen in:
-  - Linux- und Windows-Administration
-  - Netzwerkdesign (VLANs, Routing, Firewall)
-  - Monitoring & Observability
-  - Automatisierung (Ansible, Docker, CI/CD)
-  - IoT-Datenverarbeitung
