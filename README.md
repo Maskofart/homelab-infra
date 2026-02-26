@@ -28,7 +28,6 @@ Weitere Härtungsmaßnahmen und Optimierungen sind geplant (siehe Roadmap).
   - Router (Inter-VLAN-Routing)
   - DHCP-Server
   - DNS-Resolver
-  - NTP-Server
 - pfSense-Management ausschließlich aus VLAN 99 erreichbar
 - Switch-Management-IP im VLAN 99
 
