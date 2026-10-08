@@ -205,14 +205,19 @@
     { name: "Australien", flag: "🇦🇺", hue: 160, cities: ["Perth"] },
   ];
 
-  // Flache Liste aller Segmente; Farben wechseln innerhalb eines Landes leicht in der Helligkeit.
+  // Flache Liste aller Segmente, bei jedem Laden neu gemischt.
   const SEGS = [];
-  COUNTRIES.forEach(c => c.cities.forEach((x, i) => {
+  COUNTRIES.forEach(c => c.cities.forEach(x => {
     const full = typeof x === "string" ? x : x.n;
     const wheel = typeof x === "string" ? x : x.w;
-    const l = i % 2 ? 72 : 63;
-    SEGS.push({ full, wheel, country: c, color: `hsl(${c.hue} 62% ${l}%)` });
+    SEGS.push({ full, wheel, country: c });
   }));
+  for (let i = SEGS.length - 1; i > 0; i--) {
+    const j = randInt(i + 1);
+    [SEGS[i], SEGS[j]] = [SEGS[j], SEGS[i]];
+  }
+  // Helligkeit wechselt von Feld zu Feld, damit Nachbarn aus demselben Land unterscheidbar bleiben.
+  SEGS.forEach((s, i) => { s.color = `hsl(${s.country.hue} 62% ${i % 2 ? 72 : 63}%)`; });
   const N = SEGS.length;
   const SEG = (Math.PI * 2) / N;
 
@@ -260,18 +265,16 @@
       ctx.fill();
     }
 
-    // Trennlinien zwischen Ländern
-    ctx.strokeStyle = "rgba(20,28,38,.55)";
-    ctx.lineWidth = Math.max(1, R / 220);
-    let idx = 0;
-    COUNTRIES.forEach(c => {
-      const a = -Math.PI / 2 + rot + idx * SEG;
+    // Feine Trennlinien zwischen allen Feldern
+    ctx.strokeStyle = "rgba(20,28,38,.3)";
+    ctx.lineWidth = Math.max(0.5, R / 400);
+    for (let i = 0; i < N; i++) {
+      const a = -Math.PI / 2 + rot + i * SEG;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
       ctx.stroke();
-      idx += c.cities.length;
-    });
+    }
 
     // Beschriftung
     const fs = Math.max(7, R * 0.04);
