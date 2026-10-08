@@ -1,0 +1,381 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asien-Reiserad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  /* Layout: Rad links, Bordkarte mit Ergebnis rechts; auf dem Handy untereinander. */
+  :root {
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --fg: #17202b;
+    --muted: #5b6878;
+    --line: #d5dbe3;
+    --accent: #e4572e;
+    --hub: #17202b;
+    --hub-fg: #ffffff;
+    --font-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10161e; --surface: #18212c; --fg: #e8edf3; --muted: #93a1b2;
+      --line: #2a3644; --accent: #ff7a50; --hub: #e8edf3; --hub-fg: #10161e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10161e; --surface: #18212c; --fg: #e8edf3; --muted: #93a1b2;
+    --line: #2a3644; --accent: #ff7a50; --hub: #e8edf3; --hub-fg: #10161e;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 var(--font-body);
+    padding-inline: 16px;
+    padding-block: 24px 40px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    gap: 28px;
+  }
+  header { display: grid; gap: 4px; }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sub { color: var(--muted); margin: 0; }
+
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 820px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+  .wheel-box { position: relative; width: 100%; max-width: 620px; margin: 0 auto; aspect-ratio: 1; }
+  #wheel {
+    display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none;
+    cursor: pointer; border-radius: 50%;
+  }
+  #wheel:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
+  #wheel[aria-busy="true"] { cursor: progress; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .pointer {
+    position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent; border-right: 16px solid transparent;
+    border-top: 30px solid var(--accent);
+    filter: drop-shadow(0 2px 2px rgb(0 0 0 / .25));
+    pointer-events: none;
+  }
+
+  .side { display: grid; gap: 20px; min-width: 0; }
+
+  /* Bordkarte */
+  .pass {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    display: grid;
+    overflow: hidden;
+  }
+  .pass-top {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px dashed var(--line);
+    font: 500 12px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  }
+  .pass-body { padding: 20px; display: grid; gap: 6px; min-height: 150px; align-content: center; }
+  .label { font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  #city {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.7rem, 4.5vw, 2.6rem); line-height: 1.1; margin: 0;
+    overflow-wrap: anywhere; text-wrap: balance;
+  }
+  #country { font-size: 1.05rem; color: var(--muted); margin: 0; }
+  .pass.landed #city { color: var(--accent); }
+  .pass-foot {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    padding: 14px 20px; border-top: 1px dashed var(--line);
+  }
+  .pass-foot div { display: grid; gap: 4px; }
+  .pass-foot strong { font: 500 15px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  #spin {
+    font: 700 1rem/1 var(--font-display); letter-spacing: .04em;
+    background: var(--accent); color: #fff; border: 0; border-radius: 999px;
+    padding: 16px 24px; cursor: pointer;
+  }
+  #spin:hover { filter: brightness(1.06); }
+  #spin:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+  #spin:disabled { opacity: .55; cursor: progress; }
+
+  h2 { font: 600 13px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  .history ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .history li { display: flex; gap: 10px; align-items: baseline; }
+  .history li span:last-child { color: var(--muted); font-size: .9em; }
+  .history .empty { color: var(--muted); }
+
+  .legend ul {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px;
+  }
+  .legend li { display: flex; align-items: center; gap: 8px; font-size: .92rem; min-width: 0; }
+  .legend .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .legend .n { margin-left: auto; color: var(--muted); font: 500 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) { #spin:hover { filter: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Asien-Reiserad</h1>
+    <p class="sub">Klick aufs Rad. Wo der Zeiger stehen bleibt, geht die Reise hin. Jede Station hat dieselbe Chance.</p>
+  </header>
+
+  <div class="stage">
+    <div class="wheel-box">
+      <button id="wheel" type="button" aria-label="Rad drehen">
+        <canvas id="cv"></canvas>
+      </button>
+      <div class="pointer" aria-hidden="true"></div>
+    </div>
+
+    <div class="side">
+      <section class="pass" id="pass" aria-live="polite">
+        <div class="pass-top"><span>Bordkarte</span><span id="flight">Gate ?</span></div>
+        <div class="pass-body">
+          <span class="label" id="status">Nächstes Ziel</span>
+          <p id="city">Noch offen</p>
+          <p id="country">Dreh das Rad, um es herauszufinden.</p>
+        </div>
+        <div class="pass-foot">
+          <div><span class="label">Stationen</span><strong id="total">–</strong></div>
+          <div><span class="label">Länder</span><strong id="ncountries">–</strong></div>
+          <div><span class="label">Chance</span><strong id="chance">–</strong></div>
+        </div>
+      </section>
+
+      <button id="spin" type="button">Rad drehen</button>
+
+      <section class="history">
+        <h2>Zuletzt gelandet</h2>
+        <ol id="history"><li class="empty">Noch keine Drehung.</li></ol>
+      </section>
+    </div>
+  </div>
+
+  <section class="legend">
+    <h2>Länder auf dem Rad</h2>
+    <ul id="legend"></ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  // Stationen. "w" ist die kürzere Beschriftung auf dem Rad, falls nötig.
+  const COUNTRIES = [
+    { name: "China", flag: "🇨🇳", hue: 4, cities: ["Shanghai","Peking","Tianjin","Xi'an","Chongqing","Chengdu","Guangzhou","Shenzhen","Zhuhai","Hongkong","Macao","Xiamen","Fuzhou","Wenzhou","Shantou","Hangzhou","Nanjing","Wuhan","Changsha","Zhengzhou","Jinan","Qingdao","Yantai","Dalian","Shenyang","Changchun","Harbin","Baishan","Lanzhou","Yinchuan","Dunhuang","Ürümqi","Kaxgar","Altay","Kunming","Dali","Lijiang","Jinghong","Guiyang","Guilin","Nanning","Zhangjiajie","Haikou","Sanya"] },
+    { name: "Taiwan", flag: "🇹🇼", hue: 215, cities: ["Taipeh","Kaohsiung"] },
+    { name: "Südkorea", flag: "🇰🇷", hue: 195, cities: ["Seoul","Busan","Daegu","Cheongju","Jeju-do"] },
+    { name: "Japan", flag: "🇯🇵", hue: 335, cities: ["Tokio","Ōsaka","Nagoya","Fukuoka","Hiroshima","Sendai","Okinawa","Sapporo","Hakodate","Asahikawa"] },
+    { name: "Mongolei", flag: "🇲🇳", hue: 28, cities: ["Ulaanbaatar"] },
+    { name: "Vietnam", flag: "🇻🇳", hue: 48, cities: ["Hanoi",{n:"Ho-Chi-Minh-Stadt",w:"Ho-Chi-Minh"},"Đà Nẵng","Nha Trang","Phu Quoc"] },
+    { name: "Thailand", flag: "🇹🇭", hue: 255, cities: ["Bangkok","Chiang Mai","Phuket","Krabi","Koh Samui"] },
+    { name: "Kambodscha", flag: "🇰🇭", hue: 175, cities: ["Phnom Penh","Siem Reap"] },
+    { name: "Laos", flag: "🇱🇦", hue: 280, cities: ["Vientiane"] },
+    { name: "Malaysia", flag: "🇲🇾", hue: 140, cities: ["Kuala Lumpur",{n:"George Town (Penang)",w:"George Town"},{n:"Kota Kinabalu (Borneo)",w:"Kota Kinabalu"}] },
+    { name: "Singapur", flag: "🇸🇬", hue: 355, cities: ["Singapur"] },
+    { name: "Indonesien", flag: "🇮🇩", hue: 95, cities: ["Jakarta","Surabaya",{n:"Denpasar (Bali)",w:"Denpasar"}] },
+    { name: "Philippinen", flag: "🇵🇭", hue: 230, cities: ["Manila","Cebu City",{n:"Panglao (Bohol)",w:"Panglao"},{n:"Caticlan (Boracay)",w:"Caticlan"}] },
+    { name: "Australien", flag: "🇦🇺", hue: 160, cities: ["Perth"] },
+  ];
+
+  // Flache Liste aller Segmente; Farben wechseln innerhalb eines Landes leicht in der Helligkeit.
+  const SEGS = [];
+  COUNTRIES.forEach(c => c.cities.forEach((x, i) => {
+    const full = typeof x === "string" ? x : x.n;
+    const wheel = typeof x === "string" ? x : x.w;
+    const l = i % 2 ? 72 : 63;
+    SEGS.push({ full, wheel, country: c, color: `hsl(${c.hue} 62% ${l}%)` });
+  }));
+  const N = SEGS.length;
+  const SEG = (Math.PI * 2) / N;
+
+  const $ = id => document.getElementById(id);
+  $("total").textContent = N;
+  $("ncountries").textContent = COUNTRIES.length;
+  $("chance").textContent = (100 / N).toFixed(1).replace(".", ",") + " %";
+
+  $("legend").innerHTML = COUNTRIES.map(c =>
+    `<li><span class="sw" style="background:hsl(${c.hue} 62% 63%)"></span><span>${c.flag} ${c.name}</span><span class="n">${c.cities.length}</span></li>`
+  ).join("");
+
+  // Zeichnen
+  const cv = $("cv");
+  const ctx = cv.getContext("2d");
+  let rot = 0;      // aktuelle Drehung in Radiant
+  let size = 0;
+
+  function resize() {
+    const box = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    size = box.width;
+    cv.width = Math.round(box.width * dpr);
+    cv.height = Math.round(box.width * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  function draw() {
+    const R = size / 2;
+    const cx = R, cy = R;
+    const r = R - 4;
+    ctx.clearRect(0, 0, size, size);
+
+    // Segmente: Segment 0 beginnt oben (-90°) bei rot = 0
+    for (let i = 0; i < N; i++) {
+      const a0 = -Math.PI / 2 + rot + i * SEG;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, a0, a0 + SEG);
+      ctx.closePath();
+      ctx.fillStyle = SEGS[i].color;
+      ctx.fill();
+    }
+
+    // Trennlinien zwischen Ländern
+    ctx.strokeStyle = "rgba(20,28,38,.55)";
+    ctx.lineWidth = Math.max(1, R / 220);
+    let idx = 0;
+    COUNTRIES.forEach(c => {
+      const a = -Math.PI / 2 + rot + idx * SEG;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      ctx.stroke();
+      idx += c.cities.length;
+    });
+
+    // Beschriftung
+    const fs = Math.max(7, R * 0.04);
+    ctx.font = `500 ${fs}px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif`;
+    ctx.fillStyle = "#16202b";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < N; i++) {
+      const mid = -Math.PI / 2 + rot + (i + 0.5) * SEG;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(mid);
+      ctx.fillText(SEGS[i].wheel, r - R * 0.04, 0, r * 0.62);
+      ctx.restore();
+    }
+
+    // Rand
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.lineWidth = Math.max(3, R / 70);
+    ctx.strokeStyle = cssVar("--hub");
+    ctx.stroke();
+
+    // Nabe
+    const hr = R * 0.17;
+    ctx.beginPath();
+    ctx.arc(cx, cy, hr, 0, Math.PI * 2);
+    ctx.fillStyle = cssVar("--hub");
+    ctx.fill();
+    ctx.fillStyle = cssVar("--hub-fg");
+    ctx.textAlign = "center";
+    ctx.font = `700 ${Math.max(9, R * 0.055)}px "Unbounded", "Segoe UI", system-ui, sans-serif`;
+    ctx.fillText(spinning ? "…" : "DREH", cx, cy + 1);
+  }
+
+  // Zufall
+  function randInt(max) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return buf[0] % max;
+  }
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let spinning = false;
+  let flightNo = 100 + randInt(800);
+  const history = [];
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+    $("wheel").setAttribute("aria-busy", "true");
+    $("spin").disabled = true;
+    $("pass").classList.remove("landed");
+    $("status").textContent = "Rad dreht sich …";
+
+    const target = randInt(N);
+    // Zufällige Position innerhalb des Segments, nicht ganz an den Rand
+    const jitter = (Math.random() - 0.5) * SEG * 0.7;
+    const TAU = Math.PI * 2;
+    const want = ((-(target + 0.5) * SEG + jitter) % TAU + TAU) % TAU;
+    const cur = ((rot % TAU) + TAU) % TAU;
+    const delta = (want - cur + TAU) % TAU;
+    const turns = reduce ? 1 : 5 + randInt(3);
+    const start = rot;
+    const end = rot + turns * TAU + delta;
+    const dur = reduce ? 600 : 5200 + randInt(1400);
+    const t0 = performance.now();
+
+    function frame(now) {
+      const t = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - t, 4);
+      rot = start + (end - start) * e;
+      draw();
+      if (t < 1) requestAnimationFrame(frame);
+      else land(SEGS[target]);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function land(s) {
+    spinning = false;
+    $("wheel").removeAttribute("aria-busy");
+    $("spin").disabled = false;
+    flightNo = 100 + randInt(800);
+    $("flight").textContent = "Flug RR " + flightNo;
+    $("status").textContent = "Ziel erreicht";
+    $("city").textContent = s.full;
+    $("country").textContent = s.country.flag + " " + s.country.name;
+    $("pass").classList.add("landed");
+    draw();
+
+    history.unshift(s);
+    if (history.length > 6) history.pop();
+    $("history").innerHTML = history.map(h =>
+      `<li><span>${h.country.flag}</span><span>${h.full}</span><span>${h.country.name}</span></li>`
+    ).join("");
+  }
+
+  $("wheel").addEventListener("click", spin);
+  $("spin").addEventListener("click", spin);
+  window.addEventListener("resize", resize);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", draw);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  resize();
+})();
+</script>
