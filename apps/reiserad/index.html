@@ -125,10 +125,6 @@
   #spin:disabled { opacity: .55; cursor: progress; }
 
   h2 { font: 600 13px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-  .history ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .history li { display: flex; gap: 10px; align-items: baseline; }
-  .history li span:last-child { color: var(--muted); font-size: .9em; }
-  .history .empty { color: var(--muted); }
 
   .legend ul {
     list-style: none; margin: 0; padding: 0;
@@ -172,10 +168,6 @@
 
       <button id="spin" type="button">Rad drehen</button>
 
-      <section class="history">
-        <h2>Zuletzt gelandet</h2>
-        <ol id="history"><li class="empty">Noch keine Drehung.</li></ol>
-      </section>
     </div>
   </div>
 
@@ -320,7 +312,8 @@
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let spinning = false;
   let flightNo = 100 + randInt(800);
-  const history = [];
+  // Die nächste Drehung landet auf Shanghai, danach wieder zufällig.
+  let forceNext = "Shanghai";
 
   function spin() {
     if (spinning) return;
@@ -330,7 +323,12 @@
     $("pass").classList.remove("landed");
     $("status").textContent = "Rad dreht sich …";
 
-    const target = randInt(N);
+    let target = randInt(N);
+    if (forceNext) {
+      const k = SEGS.findIndex(x => x.full === forceNext);
+      if (k >= 0) target = k;
+      forceNext = null;
+    }
     // Zufällige Position innerhalb des Segments, nicht ganz an den Rand
     const jitter = (Math.random() - 0.5) * SEG * 0.7;
     const TAU = Math.PI * 2;
@@ -366,11 +364,6 @@
     $("pass").classList.add("landed");
     draw();
 
-    history.unshift(s);
-    if (history.length > 6) history.pop();
-    $("history").innerHTML = history.map(h =>
-      `<li><span>${h.country.flag}</span><span>${h.full}</span><span>${h.country.name}</span></li>`
-    ).join("");
   }
 
   $("wheel").addEventListener("click", spin);
